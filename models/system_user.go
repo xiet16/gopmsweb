@@ -11,9 +11,17 @@ type SystemUser struct {
 	Phone         string    `json:"phone" xorm:"not null default '' comment('手机号') VARCHAR(11)"`
 	AVatar        string    `json:"avatar" xorm:"not null default comment('头像') VARCHAR(300)"`
 	Introduction  string    `json:"introduction" xorm:"not null default '' comment('简介') VARCHAR(300)"`
-	Status        string    `json:"status" xorm:"not null default 1 comment('状态（0 停止1启动）') TINYINT(4)"`
+	Status        int       `json:"status" xorm:"not null default 1 comment('状态（0 停止1启动）') TINYINT(4)"`
 	Utime         time.Time `json:"utime" xorm:"not null default 'CURRENT_TIMESTAMP' comment('更新时间') TIMESTAMP"`
 	LastLoginTime time.Time `json:"last_login_time" xorm:"not null default '0000-00-00 00:00:00' comment('上次登录时间') DATETIME"`
 	LastLoginIp   string    `json:"last_login_ip" xorm:"not null default '' comment('最近登录IP') VARCHAR(50)"`
 	Ctime         time.Time `json:"ctime" xorm:"not null comment('注册时间') DATETIME"`
+}
+
+func (u *SystemUser) GetRow() bool {
+	has, err := mEngine.Get(u)
+	if err == nil && has {
+		return true
+	}
+	return false
 }

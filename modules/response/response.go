@@ -14,3 +14,10 @@ func ShowError(c *gin.Context, msg string) {
 		"msg":  msg,
 	})
 }
+
+func ShowData(c *gin.Context, data interface{}) {
+	c.JSON(http.StatusOK, gin.H{
+		"code": 20000,
+		"data": data,
+	})
+}

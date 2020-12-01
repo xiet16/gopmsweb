@@ -7,12 +7,15 @@ import (
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/redis"
 	"github.com/gin-gonic/gin"
+	ginSwagger "github.com/swaggo/gin-swagger"
+	"github.com/swaggo/gin-swagger/swaggerFiles"
 	"github.com/wonderivan/logger"
 	"go.xiet16.com/gopmsweb/conf"
+	"go.xiet16.com/gopmsweb/ctrl"
+	"go.xiet16.com/gopmsweb/models"
 	"go.xiet16.com/gopmsweb/modules/cache"
 	"go.xiet16.com/gopmsweb/modules/response"
 	"go.xiet16.com/gopmsweb/public/common"
-	"go.xiet16.com/gopmsweb/models"
 )
 
 func main() {
@@ -27,9 +30,16 @@ func main() {
 	r.Use(sessions.Sessions("gosession", store))
 	r.Use(cors.New(GetCorsConfig())) //跨域
 	r.Use(Auth())
-
-	//conf.Set(gin.DebugMode)
-
+	//r.Use(cors.Default()) //默认跨域
+	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	r.GET("/", ctrl.Index)
+	//r.GET("/upload/image",ctrl.)
+	r.GET("/pong",func(c *gin.Context){
+		c.JSON(200,gin.H{
+			"message":"pong",
+		}):
+	})
+	r.Run(":8899") 
 }
 
 func Load() {
@@ -65,7 +75,31 @@ func Auth() gin.HandlerFunc {
 			return
 		}
 		uid := session.Get(v)
-		users := models.
-
+		users := models.SystemUser{Id: uid.(int), Status: 1}
+		has := users.GetRow()
+		if !has {
+			c.Abort()
+			response.ShowError(c, "user_error")
+			return
+		}
+		//特殊账号
+		if users.Name == conf.Cfg.Super {
+			return
+		}
+		menuModel := models.SystemMenu{}
+		menuMap, err := menuModel.GetRouteByUid(uid)
+		if err != nil {
+			c.Abort()
+			response.ShowError(c, "unauthorized")
+			return
+		}
+		if _, ok = menuMap[u.Path]; !ok {
+			c.Abort()
+			response.ShowError(c, "unauthorized")
+		}
+		// access the status we are sending
+		//status := c.Writer.Status()
+		c.Next()
+		//log.Println(status) //状态 200
 	}
 }
